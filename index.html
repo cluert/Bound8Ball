@@ -7,9 +7,13 @@
 </head>
 <body>
     <header>
+        <button id="btn_reqPermission">
+            Shake Permissions
+        </button>
         <h1>The <i>magic</i> Bound <s>(1996)</s>8 Ball</h1>
     </header>
     <main>
+        <button id="btn_enableshake" style="display: none; padding: 2em">Enable Shake</button> 
         <div id="magic-ball">
             <div id="black-circle">
                 <img src="assets/magic-8-ball-8-ball-pool-eight-ball-crystal-ball-8-removebg-preview.png" alt="">
@@ -24,14 +28,14 @@
         <!-- <p>Happy Birthday, Nicole!</p> -->
     </footer>
     <script src="script.js"></script>
-    <audio controls>
+    <!-- <audio controls>
         <source src="assets/audio/Bound_Clips-da dink.wav" type="audio/wav">
         Your browser does not support the audio element.
-    </audio>
-    <audio id="sfx_player_a" src="assets/audio/audiofile.wav" type="audio/wav"></audio>
-    <audio id="sfx_player_b" src="assets/audio/audiofile.wav" type="audio/wav"></audio>
-    <audio id="sfx_shake_a" src="assets/audio/sfx_shake_start.wav" type="audio/wav"></audio>
-    <audio id="sfx_shake_b" src="assets/audio/sfx_shake_start.wav" type="audio/wav"></audio>
+    </audio> -->
+    <audio id="sfx_player_a" src="assets/audio/audiofile.wav" type="audio/wav" preload="auto"></audio>
+    <audio id="sfx_player_b" src="assets/audio/audiofile.wav" type="audio/wav" preload="auto"></audio>
+    <audio id="sfx_shake_a" src="assets/audio/sfx_shake_start.wav" type="audio/wav" preload="auto"></audio>
+    <audio id="sfx_shake_b" src="assets/audio/sfx_shake_start.wav" type="audio/wav" preload="auto"></audio>
 
     <!-- <audio id="sfx_shake_b" src="assets/audio/sfx_shake_start.wav" type="audio/wav"></audio> -->
     <audio id="sfx_yes_1" src="assets/audio/Bound_Clips-gg yeah thats what violet says.wav" type="audio/wav"></audio>
@@ -53,7 +57,6 @@
     <audio id="sfx_yes_17" src="assets/audio/Bound_Clips-jt yes i understand.wav" type="audio/wav"></audio>
     <audio id="sfx_yes_18" src="assets/audio/Bound_Clips-yeah sweet jesus.wav" type="audio/wav"></audio>
     <audio id="sfx_yes_19" src="assets/audio/Bound_Clips-you have to ask -- no.wav" type="audio/wav"></audio>
-
     
     <audio id="sfx_neutral_1" src="assets/audio/Bound_Clips-gg another time.wav" type="audio/wav"></audio>
     <audio id="sfx_neutral_2" src="assets/audio/Bound_Clips-gg go back and get ready.wav" type="audio/wav"></audio>

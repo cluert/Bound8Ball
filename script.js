@@ -1,9 +1,84 @@
 
+//////////
+// Source - https://stackoverflow.com/a/75717316
+// Posted by Kalnode, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-08-04, License - CC BY-SA 4.0
+
+// PERMISSION BUTTON
+var btn_reqPermission = document.getElementById("btn_reqPermission")
+btn_reqPermission.addEventListener("click", () => { this.checkMotionPermission() })
+
+
+// ON PAGE LOAD
+this.checkMotionPermission()
+
+
+// FUNCTIONS
+async function checkMotionPermission() {
+
+    // Any browser using requestPermission API
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+
+        // If previously granted, user will see no prompts and listeners get setup right away.
+        // If error, we show special UI to the user.
+        // FYI, "requestPermission" acts more like "check permission" on the device.
+        await DeviceOrientationEvent.requestPermission()
+        .then(permissionState => {
+            if (permissionState == 'granted') {
+                // Hide special UI; no longer needed
+                btn_reqPermission.style.display = "none"
+                this.setMotionListeners()
+            }
+        })
+        .catch( (error) => {
+            console.log("Error getting sensor permission: %O", error)
+            // Show special UI to user, suggesting they should allow motion sensors. The tap-or-click on the button will invoke the permission dialog.
+            btn_reqPermission.style.display = "block"
+        })
+
+    // All other browsers
+    } else {
+        this.setMotionListeners()
+    }
+
+}
+
+async function setMotionListeners() {
+
+    // ORIENTATION LISTENER
+    // await window.addEventListener('orientation', event => {
+    //     console.log('Device orientation event: %O', event)
+    // })
+
+    // MOTION LISTENER
+    await window.addEventListener('devicemotion', event => {
+        console.log('Device motion event: %O', event)
+
+        // SHAKE EVENT
+        // Using rotationRate, which essentially is velocity,
+        // we check each axis (alpha, beta, gamma) whether they cross a threshold (e.g. 256).
+        // Lower = more sensitive, higher = less sensitive. 256 works nice, imho.
+        if ((event.rotationRate.alpha > 256 || event.rotationRate.beta > 256 || event.rotationRate.gamma > 256)) {
+            alert('shook');
+            this.output_message.innerHTML = "SHAKEN!"
+            setTimeout(() => {
+                this.message.innerHTML = null
+            }, "2000")
+        }
+    })
+}
+
+
+
+
+////////// 
 
 // last to-dos
-// 1. deploy
 // 2. (after deploy) see if we can get shake event to work on mobile
 // 4. re-export audio:   file length AND compression!
+//
+// problem with sfx_yes_4?
+
 
 
 const answerBox = document.querySelector('.fortune')
@@ -12,13 +87,8 @@ document.getElementsByTagName("main")[0].addEventListener("click", function () {
     startNewFortune()
 });
 
+// todo: needs some permissions
 window.addEventListener('shake', handleShake);
-
-// const fortunes = ['It is certain.', 'It is decidedly so', 'Without a doubt', 'Yes definitely', 'You may rely on it', 'As I see it, yes', 'Most likely',
-//     'Outlook good', 'Yes', 'Signs point to yes', 'Reply hazy, try again', 'Ask again later', 'Better not tell you now', 'Cannot predict now', 'Concentrate and ask again',
-//     "Don't count on it", 'My reply is no', 'My sources say no', 'Outlook not so good', 'Very doubtful']
-
-const audio_prepath = 'assets/audio/';
 
 const shake_sounds = [
     'sfx_shake_1',
@@ -54,7 +124,7 @@ const fortunes_yes = [
 ]
 
 const fortunes_neutral = [
-    [ 'Reply hazy, ask again another time 😏', 1],
+    [ 'Reply hazy, ask another time 😏', 1],
     [ 'Ask again. But this time make it REAL 💪', 2],
     [ '🤨', 3],
     [ "Now you know! 🏳️‍🌈 Ask again", 4],
@@ -222,10 +292,6 @@ function presentFortune() {
     }
     setTimeout( () => showFortuneText(result[0]) , text_delay);
     setTimeout( function() { playFortuneAudio(id) }, 0);
-
-    // change the background image here, maybe a little img
-    // var bgimg = document.getElementById('bg_img');
-    // bgimg.src = 'assets/magic-8-ball-8-ball-pool-eight-ball-crystal-ball-8-removebg-preview.png';
 }
 
 var last_shake_index = -1;
@@ -278,6 +344,7 @@ async function startNewFortune() {
 }
 
 function handleShake(event) {
-    // if (acceleration) // we can examine this event
+    // todo
+
     startNewFortune();
 }
