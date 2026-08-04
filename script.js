@@ -252,6 +252,12 @@ async function showFortuneText(text) {
     return fadeIn();
 }
 
+function preloadAudio(id) {
+    var audio = document.getElementById(id);
+    audio.preload = true;
+    
+}
+
 function playFortuneAudio(id) {
     console.log(id);
     var audio = document.getElementById(id);
@@ -260,8 +266,7 @@ function playFortuneAudio(id) {
     audio.play();
 }
 
-
-function presentFortune() {
+function getFortune() {
     const p_yes = .5;
     const p_no = .25;
     const p_ask_again = .25;
@@ -282,13 +287,21 @@ function presentFortune() {
         result = selectFortuneOfType(fortunes_neutral);
         id = 'sfx_neutral_' + result[1];
     }
-
-    var text_delay = 200;
     if (result.length >= 3) {
-        text_delay += result[2];
+        return [ result[0], id, result[2] ];
     }
-    setTimeout( () => showFortuneText(result[0]) , text_delay);
-    setTimeout( function() { playFortuneAudio(id) }, 0);
+    else {
+        return [ result[0], id ];
+    }
+}
+
+function presentFortune(fortune) {
+    var text_delay = 200;
+    if (fortune.length >= 3) {
+        text_delay += fortune[2];
+    }
+    setTimeout( () => showFortuneText(fortune[0]) , text_delay);
+    setTimeout( function() { playFortuneAudio(fortune[1]) }, 0);
 }
 
 var last_shake_index = -1;
@@ -312,8 +325,13 @@ function resetForNextFortune() {
     timer_id = -1;
     started_clear_text = false;
     blocking_next_fortune = false;
+    prepared_fortune = null;
 }
 
+const delay = ms => new Promise(res => setTimeout(res, ms));
+var prepared_fortune = null;
+
+// "try" to start a new fortune
 async function startNewFortune() {
     if (blocking_next_fortune) {
         return;
@@ -322,6 +340,10 @@ async function startNewFortune() {
     playShakeAudio();
 
     if (!started_clear_text) {
+        prepared_fortune = getFortune();
+        preloadAudio(prepared_fortune[1]);
+
+        await delay(100); // sync up sound effect & visual a little better
         started_clear_text = true;
         await clearFortuneText();
     }
@@ -335,7 +357,7 @@ async function startNewFortune() {
     const delay_variance = 500;
     timer_id = window.setTimeout(function() {
         blocking_next_fortune = true;
-        presentFortune();
+        presentFortune(prepared_fortune);
         
     }, Math.random() * delay_variance + delay_min)
 }
