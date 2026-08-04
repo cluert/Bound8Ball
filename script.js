@@ -56,8 +56,6 @@ async function setMotionListeners() {
         // // Lower = more sensitive, higher = less sensitive. 256 works nice, imho.
         if ((event.rotationRate.alpha > 256 || event.rotationRate.beta > 256 || event.rotationRate.gamma > 256) && !was_shook) {
             was_shook = true;
-            alert('shook');
-            this.output_message.innerHTML = "SHAKEN!"
             setTimeout(() => {
                 was_shook = false;
             }, Math.random() * shake_cooldown_variance + shake_cooldown_min)
