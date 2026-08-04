@@ -43,27 +43,24 @@ async function checkMotionPermission() {
 
 }
 
+const shake_cooldown_min = 500;
+const shake_cooldown_variance = 700;
+var was_shook = false;
+
 async function setMotionListeners() {
-
-    // ORIENTATION LISTENER
-    // await window.addEventListener('orientation', event => {
-    //     console.log('Device orientation event: %O', event)
-    // })
-
     // MOTION LISTENER
     await window.addEventListener('devicemotion', event => {
-        console.log('Device motion event: %O', event)
-
-        // SHAKE EVENT
-        // Using rotationRate, which essentially is velocity,
-        // we check each axis (alpha, beta, gamma) whether they cross a threshold (e.g. 256).
-        // Lower = more sensitive, higher = less sensitive. 256 works nice, imho.
-        if ((event.rotationRate.alpha > 256 || event.rotationRate.beta > 256 || event.rotationRate.gamma > 256)) {
+        // // SHAKE EVENT
+        // // Using rotationRate, which essentially is velocity,
+        // // we check each axis (alpha, beta, gamma) whether they cross a threshold (e.g. 256).
+        // // Lower = more sensitive, higher = less sensitive. 256 works nice, imho.
+        if ((event.rotationRate.alpha > 256 || event.rotationRate.beta > 256 || event.rotationRate.gamma > 256) && !was_shook) {
+            was_shook = true;
             alert('shook');
             this.output_message.innerHTML = "SHAKEN!"
             setTimeout(() => {
-                this.message.innerHTML = null
-            }, "2000")
+                was_shook = false;
+            }, Math.random() * shake_cooldown_variance + shake_cooldown_min)
         }
     })
 }
