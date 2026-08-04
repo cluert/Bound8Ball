@@ -1,0 +1,283 @@
+
+
+// last to-dos
+// 1. deploy
+// 2. (after deploy) see if we can get shake event to work on mobile
+// 4. re-export audio:   file length AND compression!
+
+
+const answerBox = document.querySelector('.fortune')
+
+document.getElementsByTagName("main")[0].addEventListener("click", function () {
+    startNewFortune()
+});
+
+window.addEventListener('shake', handleShake);
+
+// const fortunes = ['It is certain.', 'It is decidedly so', 'Without a doubt', 'Yes definitely', 'You may rely on it', 'As I see it, yes', 'Most likely',
+//     'Outlook good', 'Yes', 'Signs point to yes', 'Reply hazy, try again', 'Ask again later', 'Better not tell you now', 'Cannot predict now', 'Concentrate and ask again',
+//     "Don't count on it", 'My reply is no', 'My sources say no', 'Outlook not so good', 'Very doubtful']
+
+const audio_prepath = 'assets/audio/';
+
+const shake_sounds = [
+    'sfx_shake_1',
+    'sfx_shake_2',
+    'sfx_shake_3',
+    'sfx_shake_4',
+];
+
+// indices are...
+// 0 = text that will appear on the 8-ball
+// 1 = path to the fortune's audio file
+// 2 = additional text delay (to line up text with longer audio. note that the text determines when we can roll again)
+const fortunes_yes = [
+    ['💕 It is certain 💕', 1],
+    ['Alright 😉', 2],
+    ['😲 Without a doubt!', 3],
+    ['Signs point to maybe!', 4],
+    ["I'm absolutely positive 🙂‍↕️", 5],
+    ['Of course! ☺️', 6],
+    ['Yes! 🤗', 7],
+    ['Sure! 🥳', 8],
+    // ['😙 Outlook good', 9],
+    ['Signs point to yeah', 10],
+    ['Most likely', 11],
+    ['Without a doubt', 12],
+    ['Yes. 🫪', 13],
+    ['😐 Yep ', 14],
+    ['Yes? 🤷‍♀️', 15, 400],
+    ['😐 yuh', 16],
+    ['🙂 Yes', 17],
+    ['☺️ Yes!', 18, 800 ],
+    ["Signs point to yes! But don't tell nobody 🤫", 19]
+]
+
+const fortunes_neutral = [
+    [ 'Reply hazy, ask again another time 😏', 1],
+    [ 'Ask again. But this time make it REAL 💪', 2],
+    [ '🤨', 3],
+    [ "Now you know! 🏳️‍🌈 Ask again", 4],
+    ['ask again', 5],
+    ['I could be lying 😈', 6],
+    ['You have no idea 🤨', 7],
+    ["I think we're gonna find out", 8],
+    ['😅', 9],
+    ['Please repeat the question 😑', 10],
+    ["😒 Try again", 11],
+    ["Ask again... 😳", 12],
+    ["Please don't involve me in this 😣", 13],
+    ["I can't believe you would ask me that 😤", 14],
+    ['😳 Ask again', 15],
+    ['🫠', 16],
+    ["Can't say 😑 walls too thin.", 17],
+    ['Maybe 😅', 18],
+    ['...and ask again? 🥰', 20, 300],
+    ['Ask again. Trust me! ☺️', 21]
+
+]
+
+const fortunes_no = [
+    [ "😦", 1 ],
+    [ '🫤 No?', 2],
+    [ '😒 Very doubtful', 3],
+    ['Not exactly 🙂‍↔️', 4],
+    ['Not a good idea ☹️', 5],
+    [ 'Outlook not so good, Sue 🙍‍♀️', 6],
+    // ['😟', 7], // little too intense compared to everything else lol
+    ['Not looking good 😖', 8],
+    ["I don't think so", 9],
+    ['Outlook not so good', 10],
+    ['Doubtful 😢', 11],
+    ['My sources say no', 12],
+    // ['My reply is no', 13], // bad audio, boring clip
+    ['My reply is no 🥺', 14],
+
+]
+
+async function fadeIn() {
+    answerBox.removeAttribute('hidden');
+
+    answerBox.animate([
+        // default translation is -50,-50 -- see css file
+        { transform: 'translate(-49%, -49%) rotate(0deg)' },
+        { transform: 'translate(-51%, -52%) rotate(-1deg)'},
+        { transform: 'translate(-53%, -50%) rotate(1deg)'},
+        { transform: 'translate(-47%, -48%) rotate(0deg)'},
+        { transform: 'translate(-49%, -51%) rotate(1deg)'},
+        { transform: 'translate(-51%, -48%) rotate(-1deg)'},
+        { transform: 'translate(-53%, -49%) rotate(0deg)'},
+        { transform: 'translate(-47%, -49%) rotate(-1deg)'},
+        { transform: 'translate(-51%, -51%) rotate(1deg)'},
+        { transform: 'translate(-49%, -49%) rotate(-1deg)'},
+        { transform: 'translate(-50%, -50%) rotate(0deg)'},
+    ],
+    {
+        duration: 500
+    });
+    return answerBox.animate([
+        { opacity: 0 },
+        { opacity: 1 }
+    ],
+    {
+        duration: 1000
+    })
+    .finished.then(function() {
+        resetForNextFortune();
+    });
+}
+
+async function fadeOut() {
+    answerBox.animate([
+        // default translation is -50,-50 -- see css file
+        { transform: 'translate(-47%, -47%) rotate(0deg)' },
+        { transform: 'translate(-53%, -56%) rotate(-1deg)'},
+        { transform: 'translate(-59%, -50%) rotate(1deg)'},
+        { transform: 'translate(-41%, -41%) rotate(0deg)'},
+        { transform: 'translate(-47%, -53%) rotate(1deg)'},
+        { transform: 'translate(-53%, -41%) rotate(-1deg)'},
+        { transform: 'translate(-59%, -47%) rotate(0deg)'},
+        { transform: 'translate(-41%, -47%) rotate(-1deg)'},
+        { transform: 'translate(-53%, -53%) rotate(1deg)'},
+        { transform: 'translate(-47%, -47%) rotate(-1deg)'},
+        { transform: 'translate(-50%, -50%) rotate(0deg)'},
+    ],
+    {
+        duration: 500
+    });
+
+    return answerBox.animate([
+        { opacity: 1 },
+        { opacity: 0 }
+    ],
+    {
+        duration: 500
+    })
+    .finished.then(function() { 
+        // setting opacity attribute didn't do anything - gets reset to css value at end of animation?
+        // doing this instead
+        answerBox.setAttribute('hidden', true);
+    });
+}
+
+function getNonRepeatIndex(length, old_index) {
+    const index = Math.floor(Math.random()*length);
+    if (index === old_index) {
+        return (index + 1) % length;
+    }
+    return index;
+}
+
+var last_fortune_index = -1;
+function selectFortuneOfType(fortune_array) {
+    last_fortune_index = getNonRepeatIndex(fortune_array.length, last_fortune_index);
+
+    return fortune_array[last_fortune_index];
+}
+
+async function clearFortuneText() {
+    return fadeOut();
+}
+
+async function showFortuneText(text) {
+    answerBox.textContent = `${text}`
+    answerBox.setAttribute('class', 'fix-font')
+    return fadeIn();
+}
+
+function playFortuneAudio(id) {
+    console.log(id);
+    var audio = document.getElementById(id);
+    audio.pause();
+    audio.currentTime = 0;
+    audio.play();
+}
+
+
+function presentFortune() {
+    const p_yes = .5;
+    const p_no = .25;
+    const p_ask_again = .25;
+    const p_sum = p_yes + p_no + p_ask_again;
+
+    const p = Math.random() * p_sum;
+    var result;
+    var id;
+    if (p <= p_yes) {
+        result = selectFortuneOfType(fortunes_yes);
+        id = 'sfx_yes_' + result[1];
+    }
+    else if (p <= p_no + p_yes) {
+        result = selectFortuneOfType(fortunes_no);
+        id = 'sfx_no_' + result[1];
+    }
+    else {
+        result = selectFortuneOfType(fortunes_neutral);
+        id = 'sfx_neutral_' + result[1];
+    }
+
+    var text_delay = 200;
+    if (result.length >= 3) {
+        text_delay += result[2];
+    }
+    setTimeout( () => showFortuneText(result[0]) , text_delay);
+    setTimeout( function() { playFortuneAudio(id) }, 0);
+
+    // change the background image here, maybe a little img
+    // var bgimg = document.getElementById('bg_img');
+    // bgimg.src = 'assets/magic-8-ball-8-ball-pool-eight-ball-crystal-ball-8-removebg-preview.png';
+}
+
+var last_shake_index = -1;
+function playShakeAudio() {
+    last_shake_index = getNonRepeatIndex(shake_sounds.length, last_shake_index);
+    const sfx_shake = document.getElementById(shake_sounds[last_shake_index]);
+    sfx_shake.volume = 0.4; // cant set this in html?
+
+    console.log(last_shake_index)
+    sfx_shake.pause();
+    sfx_shake.currentTime = 0;
+    sfx_shake.play();
+}
+
+var timer_id = -1;
+var started_clear_text = false;
+var blocking_next_fortune = false;
+
+// called when we want to allow 
+function resetForNextFortune() {
+    timer_id = -1;
+    started_clear_text = false;
+    blocking_next_fortune = false;
+}
+
+async function startNewFortune() {
+    if (blocking_next_fortune) {
+        return;
+    }
+
+    playShakeAudio();
+
+    if (!started_clear_text) {
+        started_clear_text = true;
+        await clearFortuneText();
+    }
+
+    var delay_min = 1000;
+    if (timer_id > 0) {
+        window.clearTimeout(timer_id);
+        delay_min += 400; // extra time, since we aren't playing clear animation
+    }
+
+    const delay_variance = 500;
+    timer_id = window.setTimeout(function() {
+        blocking_next_fortune = true;
+        presentFortune();
+        
+    }, Math.random() * delay_variance + delay_min)
+}
+
+function handleShake(event) {
+    // if (acceleration) // we can examine this event
+    startNewFortune();
+}
