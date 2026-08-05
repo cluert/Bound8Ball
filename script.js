@@ -1,4 +1,8 @@
 
+// final to-dos
+// 4. re-export audio:   file length, maybe lower bit depth, AND volume normalization
+//
+
 //////////
 // Source - https://stackoverflow.com/a/75717316
 // Posted by Kalnode, modified by community. See post 'Timeline' for change history
@@ -65,17 +69,7 @@ async function setMotionListeners() {
     })
 }
 
-
-
-
 ////////// 
-
-// last to-dos
-// 2. (after deploy) see if we can get shake event to work on mobile
-// 4. re-export audio:   file length AND compression!
-//
-// problem with sfx_yes_4?
-
 
 
 const answerBox = document.querySelector('.fortune')
@@ -127,13 +121,13 @@ const fortunes_neutral = [
     [ "Now you know! 🏳️‍🌈 Ask again", 4],
     ['ask again', 5],
     ['I could be lying 😈', 6],
-    ['You have no idea 🤨', 7],
-    ["I think we're gonna find out", 8],
+    ['🤨 Ask again', 7],
+    ["I think we're gonna find out 💪", 8],
     ['😅', 9],
     ['Please repeat the question 😑', 10],
-    ["😒 Try again", 11],
-    ["Ask again... 😳", 12],
-    ["Please don't involve me in this 😣", 13],
+    ["😒 Ask again", 11],
+    ["Ask again...? 😳", 12],
+    ["Please don't ask me that 😣 Or ask again", 13],
     ["I can't believe you would ask me that 😤", 14],
     ['😳 Ask again', 15],
     ['🫠', 16],
@@ -316,6 +310,7 @@ function playShakeAudio() {
     sfx_shake.play();
 }
 
+// "stages" of rolling the dice, waiting for a new fortune to appear, and then holding on that fortune for a bit
 var timer_id = -1;
 var started_clear_text = false;
 var blocking_next_fortune = false;
@@ -329,7 +324,7 @@ function resetForNextFortune() {
 }
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
-var prepared_fortune = null;
+var prepared_fortune = null; // store the fortune, so we can prefetch audio file
 
 // "try" to start a new fortune
 async function startNewFortune() {
@@ -351,14 +346,13 @@ async function startNewFortune() {
     var delay_min = 1000;
     if (timer_id > 0) {
         window.clearTimeout(timer_id);
-        delay_min += 400; // extra time, since we aren't playing clear animation
+        delay_min += 400;
     }
 
     const delay_variance = 500;
     timer_id = window.setTimeout(function() {
         blocking_next_fortune = true;
         presentFortune(prepared_fortune);
-        
     }, Math.random() * delay_variance + delay_min)
 }
 
