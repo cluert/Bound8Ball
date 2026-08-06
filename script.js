@@ -45,8 +45,8 @@ async function checkMotionPermission() {
 
 }
 
-const shake_cooldown_min = 500;
-const shake_cooldown_variance = 700;
+const shake_cooldown_min = 100;
+const shake_cooldown_variance = 250;
 var was_shook = false;
 
 async function setMotionListeners() {
@@ -78,8 +78,7 @@ document.getElementsByTagName("main")[0].addEventListener("click", function () {
     startNewFortune()
 });
 
-// todo: needs some permissions
-window.addEventListener('shake', handleShake);
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
 const shake_sounds = [
     'sfx_shake_1',
@@ -90,36 +89,39 @@ const shake_sounds = [
 
 // indices are...
 // 0 = text that will appear on the 8-ball
-// 1 = path to the fortune's audio file
+// 1 = used to construct the ID of the audio tag to be played (id is composed of yes/no/maybe and this number)
 // 2 = additional text delay (to line up text with longer audio. note that the text determines when we can roll again)
 const fortunes_yes = [
-    ['💕 It is certain 💕', 1],
+    ['💕It is certain💕', 1],
     ['Alright 😉', 2],
     ['😲 Without a doubt!', 3],
-    ['Signs point to maybe!', 4],
+    ['Signs point to maybe 😌', 4],
     ["I'm absolutely positive 🙂‍↕️", 5],
     ['Of course! ☺️', 6],
     ['Yes! 🤗', 7],
     ['Sure! 🥳', 8],
     // ['😙 Outlook good', 9],
-    ['Signs point to yeah', 10],
-    ['Most likely', 11],
-    ['Without a doubt', 12],
+    ['Signs point to yeah! 😚', 10],
+    // ['Without a doubt', 12],
     ['Yes. 🫪', 13],
     ['😐 Yep ', 14],
     ['Yes? 🤷‍♀️', 15, 400],
-    ['😐 yuh', 16],
+    ['😐 yuh.', 16],
     ['🙂 Yes', 17],
     ['☺️ Yes!', 18, 800 ],
     ["Signs point to yes! But don't tell nobody 🤫", 19]
+
+
+
+    // ['Most likely', 11], // bad audio
 ]
 
 const fortunes_neutral = [
     [ 'Reply hazy, ask another time 😏', 1],
     [ 'Ask again. But this time make it REAL 💪', 2],
-    [ '🤨', 3],
+    [ 'Ask again', 3],
     [ "Now you know! 🏳️‍🌈 Ask again", 4],
-    ['ask again', 5],
+    // ["DO you know what you're saying? If so, ask again!", 5],
     ['I could be lying 😈', 6],
     ['🤨 Ask again', 7],
     ["I think we're gonna find out 💪", 8],
@@ -127,8 +129,8 @@ const fortunes_neutral = [
     ['Please repeat the question 😑', 10],
     ["😒 Ask again", 11],
     ["Ask again...? 😳", 12],
-    ["Please don't ask me that 😣 Or ask again", 13],
-    ["I can't believe you would ask me that 😤", 14],
+    ["🫩 Ask another time", 13],
+    ["Outlook is: none of your business! 😤", 14],
     ['😳 Ask again', 15],
     ['🫠', 16],
     ["Can't say 😑 walls too thin.", 17],
@@ -145,15 +147,17 @@ const fortunes_no = [
     ['Not exactly 🙂‍↔️', 4],
     ['Not a good idea ☹️', 5],
     [ 'Outlook not so good, Sue 🙍‍♀️', 6],
-    // ['😟', 7], // little too intense compared to everything else lol
     ['Not looking good 😖', 8],
-    ["I don't think so", 9],
-    ['Outlook not so good', 10],
+    // ["I don't think so", 9],
+    // ['Outlook not so good', 10],
     ['Doubtful 😢', 11],
-    ['My sources say no', 12],
-    // ['My reply is no', 13], // bad audio, boring clip
+    // ['My sources say no', 12],
     ['My reply is no 🥺', 14],
 
+
+
+    // ['😟', 7], // little too intense compared to everything else lol
+    // ['My reply is no', 13], // bad audio, boring clip
 ]
 
 async function fadeIn() {
@@ -215,12 +219,15 @@ async function fadeOut() {
         duration: 500
     })
     .finished.then(function() { 
-        // setting opacity attribute didn't do anything - gets reset to css value at end of animation?
-        // doing this instead
+        // dont know why i cant just set opacity -- not a web developer
+        // just going to hide the entire element instead
         answerBox.setAttribute('hidden', true);
     });
 }
 
+// so we dont get the same sound back-to-back. 
+// probaby preferable for fortunes, but necessary for "shake" audio given my choice to use one audio tag for each sound effect
+// to prevent the audio from cutting off 
 function getNonRepeatIndex(length, old_index) {
     const index = Math.floor(Math.random()*length);
     if (index === old_index) {
@@ -236,6 +243,27 @@ function selectFortuneOfType(fortune_array) {
     return fortune_array[last_fortune_index];
 }
 
+const play_each_once = true
+// this function also increments the play count
+function getPseudoRandomFortune(fortunes, playcounts) {
+    if (play_each_once) {
+        unplayed_indices = [];
+        for (var i = 0; i < playcounts.length; ++i) {
+            if (playcounts[i] === 0) {
+                unplayed_indices.push(i);
+            }
+        }
+        console.log(unplayed_indices);
+        if (unplayed_indices.length > 0) {
+            var index = unplayed_indices[ Math.floor(Math.random() * unplayed_indices.length) ];
+            playcounts[index] += 1;
+            return fortunes[index];
+        }
+    }
+    
+    return fortunes[ Math.floor(Math.random() * fortunes.length) ];
+}
+
 async function clearFortuneText() {
     return fadeOut();
 }
@@ -249,18 +277,22 @@ async function showFortuneText(text) {
 function preloadAudio(id) {
     var audio = document.getElementById(id);
     audio.preload = true;
-    
 }
 
 function playFortuneAudio(id) {
-    console.log(id);
+    // console.log(id);
     var audio = document.getElementById(id);
     audio.pause();
     audio.currentTime = 0;
     audio.play();
 }
 
+var playcounts_yes = new Array(fortunes_yes.length).fill(0);
+var playcounts_no = new Array(fortunes_no.length).fill(0);
+var playcounts_maybe = new Array(fortunes_neutral.length).fill(0);
+
 function getFortune() {
+    // the odds of getting a yes/no/ask-again
     const p_yes = .5;
     const p_no = .25;
     const p_ask_again = .25;
@@ -270,15 +302,15 @@ function getFortune() {
     var result;
     var id;
     if (p <= p_yes) {
-        result = selectFortuneOfType(fortunes_yes);
+        result = getPseudoRandomFortune(fortunes_yes, playcounts_yes);
         id = 'sfx_yes_' + result[1];
     }
     else if (p <= p_no + p_yes) {
-        result = selectFortuneOfType(fortunes_no);
+        result = getPseudoRandomFortune(fortunes_no, playcounts_no);
         id = 'sfx_no_' + result[1];
     }
     else {
-        result = selectFortuneOfType(fortunes_neutral);
+        result = getPseudoRandomFortune(fortunes_neutral, playcounts_maybe);
         id = 'sfx_neutral_' + result[1];
     }
     if (result.length >= 3) {
@@ -304,45 +336,48 @@ function playShakeAudio() {
     const sfx_shake = document.getElementById(shake_sounds[last_shake_index]);
     sfx_shake.volume = 0.4; // cant set this in html?
 
-    console.log(last_shake_index)
+    // console.log(last_shake_index)
     sfx_shake.pause();
     sfx_shake.currentTime = 0;
     sfx_shake.play();
 }
 
-// "stages" of rolling the dice, waiting for a new fortune to appear, and then holding on that fortune for a bit
-var timer_id = -1;
-var started_clear_text = false;
-var blocking_next_fortune = false;
 
-// called when we want to allow 
+var timer_id = -1; // save the fortune timer so we can restart -- enables repeated shakes
+
+var cleared_fortune = false; // because we only want to play the "fade-out" animation once
+var shaking_disabled = false; // briefly disable shaking while showing the fortune to ignore accidental shakes
+
+var saved_fortune = null; // save a fortune as soon as we start shaking -- so we can load the audio file without delay
+
+// reset the variables we use to gate the stages of showing the fortune
 function resetForNextFortune() {
     timer_id = -1;
-    started_clear_text = false;
-    blocking_next_fortune = false;
-    prepared_fortune = null;
+    cleared_fortune = false;
+    shaking_disabled = false;
+    saved_fortune = null;
 }
 
-const delay = ms => new Promise(res => setTimeout(res, ms));
-var prepared_fortune = null; // store the fortune, so we can prefetch audio file
-
-// "try" to start a new fortune
+// try to start a new fortune
 async function startNewFortune() {
-    if (blocking_next_fortune) {
+    // if we are in the process of displaying a new fortune, prevent shaking
+    if (shaking_disabled) {
         return;
     }
 
     playShakeAudio();
 
-    if (!started_clear_text) {
-        prepared_fortune = getFortune();
-        preloadAudio(prepared_fortune[1]);
+    // play the fade-out animation, but only once
+    if (!cleared_fortune) {
+        saved_fortune = getFortune();
+        preloadAudio(saved_fortune[1]);
 
-        await delay(100); // sync up sound effect & visual a little better
-        started_clear_text = true;
+        await delay(100); // clear text a little later than the audio cue
+        cleared_fortune = true;
         await clearFortuneText();
     }
 
+    // if we already shook but the fortune hasn't started appearing, reset the timer
     var delay_min = 1000;
     if (timer_id > 0) {
         window.clearTimeout(timer_id);
@@ -351,8 +386,8 @@ async function startNewFortune() {
 
     const delay_variance = 500;
     timer_id = window.setTimeout(function() {
-        blocking_next_fortune = true;
-        presentFortune(prepared_fortune);
+        shaking_disabled = true;
+        presentFortune(saved_fortune);
     }, Math.random() * delay_variance + delay_min)
 }
 
