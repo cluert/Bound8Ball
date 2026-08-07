@@ -1,8 +1,3 @@
-
-// final to-dos
-// 4. re-export audio:   file length, maybe lower bit depth, AND volume normalization
-//
-
 //////////
 // Source - https://stackoverflow.com/a/75717316
 // Posted by Kalnode, modified by community. See post 'Timeline' for change history
@@ -244,7 +239,7 @@ function selectFortuneOfType(fortune_array) {
 }
 
 const play_each_once = true
-// this function also increments the play count
+
 function getPseudoRandomFortune(fortunes, playcounts) {
     if (play_each_once) {
         unplayed_indices = [];
@@ -253,7 +248,7 @@ function getPseudoRandomFortune(fortunes, playcounts) {
                 unplayed_indices.push(i);
             }
         }
-        console.log(unplayed_indices);
+        // console.log(unplayed_indices);
         if (unplayed_indices.length > 0) {
             var index = unplayed_indices[ Math.floor(Math.random() * unplayed_indices.length) ];
             playcounts[index] += 1;
@@ -261,6 +256,7 @@ function getPseudoRandomFortune(fortunes, playcounts) {
         }
     }
     
+    // admittedly not very pseudorandom
     return fortunes[ Math.floor(Math.random() * fortunes.length) ];
 }
 
@@ -377,14 +373,15 @@ async function startNewFortune() {
         await clearFortuneText();
     }
 
-    // if we already shook but the fortune hasn't started appearing, reset the timer
+    // if we already shook but the fortune hasn't started appearing, restart the timer
+    // (so you can keep shaking the 8-ball and won't see a fortune until you stop shaking)
     var delay_min = 1000;
     if (timer_id > 0) {
         window.clearTimeout(timer_id);
         delay_min += 400;
     }
 
-    const delay_variance = 500;
+    const delay_variance = 700;
     timer_id = window.setTimeout(function() {
         shaking_disabled = true;
         presentFortune(saved_fortune);
