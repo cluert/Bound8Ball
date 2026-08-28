@@ -87,13 +87,13 @@ const shake_sounds = [
 // 1 = used to construct the ID of the audio tag to be played (id is composed of yes/no/maybe and this number)
 // 2 = additional text delay (to line up text with longer audio. note that the text determines when we can roll again)
 const fortunes_yes = [
-    ['💕It is certain💕', 1],
-    ['Alright 😉', 2],
+    ['💕It is certain💕', 1, 250],
+    ['Outlook is Alright 😉', 2],
     ['😲 Without a doubt!', 3],
     ['Signs point to maybe 😌', 4],
     ["I'm absolutely positive 🙂‍↕️", 5],
     ['Of course! ☺️', 6],
-    ['Yes! 🤗', 7],
+    ['As I see it, yes! 🤗', 7],
     ['Sure! 🥳', 8],
     // ['😙 Outlook good', 9],
     ['Signs point to yeah! 😚', 10],
@@ -117,7 +117,7 @@ const fortunes_neutral = [
     [ 'Ask again', 3],
     [ "Now you know! 🏳️‍🌈 Ask again", 4],
     // ["DO you know what you're saying? If so, ask again!", 5],
-    ['I could be lying 😈', 6],
+    ['I could be lying 😈 Ask again', 6],
     ['🤨 Ask again', 7],
     ["I think we're gonna find out 💪", 8],
     ['😅', 9],
@@ -128,24 +128,24 @@ const fortunes_neutral = [
     ["Outlook is: none of your business! 😤", 14],
     ['😳 Ask again', 15],
     ['🫠', 16],
-    ["Can't say 😑 walls too thin.", 17],
-    ['Maybe 😅', 18],
+    ["Can't say now 😑 walls too thin.", 17],
+    ['Maybe 😅 Ask again', 18],
     ['...and ask again? 🥰', 20, 300],
     ['Ask again. Trust me! ☺️', 21]
 
 ]
 
 const fortunes_no = [
-    [ "😦", 1 ],
+    [ "😦 I think that's a no", 1 ],
     [ '🫤 No?', 2],
     [ '😒 Very doubtful', 3],
     ['Not exactly 🙂‍↔️', 4],
     ['Not a good idea ☹️', 5],
-    [ 'Outlook not so good, Sue 🙍‍♀️', 6],
+    ['Outlook not so good, Sue 🙍‍♀️', 6],
     ['Not looking good 😖', 8],
     // ["I don't think so", 9],
     // ['Outlook not so good', 10],
-    ['Doubtful 😢', 11],
+    ['My sources say: Doubtful 😢', 11],
     // ['My sources say no', 12],
     ['My reply is no 🥺', 14],
 
